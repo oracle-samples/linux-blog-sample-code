@@ -1,0 +1,191 @@
+```bash
+#!/bin/bash
+
+# Ramdisk mirroring configuration script.
+#
+# Copyright (c) 2019 Oracle and/or its affiliates.  All rights reserved.
+# Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
+
+#
+# Defaults which can be overridden
+# see /etc/sysconfig/raid1-ramdisk
+# 
+CUSTOM_CONF=/etc/sysconfig/raid1-ramdisk
+ROOT="/"
+FREE_RAM=$(free -k | awk '/Mem/ {print $4}')
+ALLOW_UMOUNT_BOOT=0
+ALLOW_UMOUNT_SWAP=1
+ENABLE_ZRAM=1
+ZRAM_ALG=lz4
+
+# do we have overrides?
+if [ -e $CUSTOM_CONF ]; then
+	. $CUSTOM_CONF
+fi
+
+check_zram_ready() {
+	# We can only use zRAM when:
+	# - lvm configuration devices/types includes zram
+	# - the root FS has a 4k sector size, as zRAM device requires 4k I/Os.
+
+	# In case it appears in the default supported types:
+	if ! lvm devtypes | grep -q zram 2>/dev/null; then
+		# Verify the customized configuration
+		if ! lvm config devices/types | grep -q zram 2>/dev/null; then
+			echo "LVM configuration needs to support 'zram'"
+			echo "Add 'types = [ \"zram\", 16 ]' in  lvm configuration (usually /etc/lvm/lvm.conf file)"
+			return 1
+		fi
+	fi
+
+	SECT4K=$(xfs_info / | awk 'BEGIN {good=0; bad=0} $2 ~ /^sectsz=4096$/ {good++;next} $2 ~ /^sectsz=/ {bad++} END {print (good>1 && bad==0)}')
+	if [ "$SECT4K" = "0" ]; then
+		echo "Root filesystem must use 4k sector size to use zRAM"
+		echo "You may need to recreate the / fs with 'mkfs.xfs -s 4096 ..."
+		return 1
+	fi
+	return 0
+}
+
+if [ "$ENABLE_ZRAM" = "1" ]; then
+	if ! check_zram_ready; then
+		echo "Using standard brd ramdisk"
+		ENABLE_ZRAM=0
+	fi
+fi
+
+if [ "$ENABLE_ZRAM" = "1" ]; then
+	RAM_DEV=/dev/zram0
+else
+	RAM_DEV=/dev/ram0
+fi
+
+# What is the name of the volume group / is mounted on ?
+# (usually 'ol', but not guaranteed)
+ROOT_MOUNT=$(df --output=source "$ROOT" | grep ^/dev)
+if  [ -z "$ROOT_MOUNT" ]; then
+	echo "Invalid root fs device configuration" >&2
+	exit 1
+fi
+ROOT_VG=$(lvs --noheadings -o vg_name "$ROOT_MOUNT" 2>/dev/null | tr -d ' ')
+# LV target name (usually 'ol/root', but not guaranteed)
+ROOT_LV=$(lvs --noheadings -o lv_full_name "$ROOT_MOUNT" 2>/dev/null | tr -d ' ')
+if  [ -z "$ROOT_VG" -o -z "$ROOT_LV" ]; then
+	echo "Invalid root LVM configuration" >&2
+	exit 1
+fi
+
+
+# Wait,.. check RAID hasn't been started already
+if [ "$(lvs --noheadings -o lv_layout "$ROOT_LV" | tr -d ' ')" = "raid,raid1" ]; then
+	# Check that it's not a broken raid from a reboot
+	check_dev=$(for segment in $(lvs --noheadings -o devices "$ROOT_LV" | \
+			sed -e 's/([^()]*)//g' | tr -d ' ' | tr ',' '\n') ; do \
+			lvs --noheadings -a -o devices "${ROOT_VG}/${segment}" | \
+			sed -e 's/([^()]*)//g' | tr -d ' ' | tr ',' '\n'; done | egrep 'dev/[z]?ram')
+	if [ ! -z "$check_dev" ]; then
+		echo "RAID1 ramdisk already present using $(($(blockdev --getsize64 $RAM_DEV) / 1024)) K" >&2
+		exit 1
+	fi
+	echo "Broken RAID1 found, attempting to recreate ramdisk member"
+fi
+
+# Tidyup errent lvm cache entries from last ramdisk entry
+# (LVM caches the unique UUID which vanishes when we reboot,
+#  destroying the ramdisk existence)
+vgreduce --force --removemissing "$ROOT_VG"
+
+# And how big is that exactly? (k=1024 byte units), ensure we have the
+# needed 2 additional extents room (+4MB) for lvm workspace data (PV + Mirror).
+MIRROR_SIZE=$(lvs --noheadings --units k -o lv_size "$ROOT_LV" 2>/dev/null | cut -f 1 -d "." | tr -d ' ')
+MIRROR_SIZE=$((MIRROR_SIZE + 2 * 4096))
+
+echo "RAID1 ramdisk: intending to use $MIRROR_SIZE K of memory for facilitation of [ $ROOT ]"
+
+# mmm are we allowed to build a ramdisk? check FREE_RAM (our maximum)
+if [ "$FREE_RAM" -lt "$MIRROR_SIZE" ]; then
+	echo "RAID1 ramdisk failed as the maximum ram available is ${FREE_RAM} K when ${MIRROR_SIZE} K would be required" >&2
+	exit 1
+fi
+
+# Just for the record, what (single) physical device is it attached to?
+# (usually /dev/sda2)
+PHYS_DEV=$(vgs --noheadings -o devices 2>/dev/null "$ROOT_MOUNT" | cut -f1 -d "(" | tr -d ' ')
+
+# create the RAM disk
+if [ "$ENABLE_ZRAM" = "1" ]; then
+	modprobe zram num_devices=1
+	RAM_DEV=$(zramctl --find --streams "$(getconf _NPROCESSORS_ONLN)" --size ${MIRROR_SIZE}K --algorithm "$ZRAM_ALG")
+	if [[ "$RAM_DEV" != "/dev/zram"* ]]; then
+		echo "Failed to create zram ramdisk" >&2
+		exit 1
+	fi
+else
+	if ! modprobe brd rd_nr=1 rd_size=$MIRROR_SIZE max_part=0; then
+		echo "Failed to create brd ramdisk" >&2
+		exit 1
+	fi
+fi
+
+# create a LVM Physical Volume on created ramdisk
+pvcreate "$RAM_DEV"
+
+# Extend Volume Group to include above PV
+vgextend "$ROOT_VG" "$RAM_DEV"
+
+# When we rebooted the LVM state of the PHYS_DEV could have been degraded
+lvconvert -y --repair "$ROOT_LV" 2>/dev/null
+
+# refresh the LVM caches
+lvscan --cache
+
+# Convert the Logical Volume to a RAID 1 configuration
+
+if ! lvconvert -y --type raid1 -m1 "$ROOT_LV" "$RAM_DEV"; then
+	echo "Failed to attach our mirror branch" >&2
+	vgreduce "$ROOT_VG" "$RAM_DEV"
+	pvremove "$RAM_DEV"
+	if [ "$RAM_DEV" = "/dev/ram0" ]; then
+		rmmod brd
+	else
+		zramctl -r "$RAM_DEV"
+	fi
+	exit 1
+fi
+
+# The raid1 sync MUST complete before we can use writemostly
+# (2G on gigabit = ~14-18 seconds)
+echo "Waiting for mirror to synchronize..."
+CONTINUE=0
+START_TIME=$(date +%s)
+while [ $CONTINUE -eq 0 ];do
+	sleep 1
+	CONTINUE=$(lvs -a -o sync_percent "$ROOT_LV" 2>/dev/null | grep -c 100.00)
+done
+END_TIME=$(date +%s)
+echo "LVM RAID1 sync of [ $ROOT ] took $(date -u -d "0 $END_TIME sec - $START_TIME sec" +"%H:%M:%S sec")"
+
+# Change the Logical Volume RAID properties
+lvchange --writemostly "${PHYS_DEV}:y" "$ROOT_LV"
+
+# Show zram disk if used.
+if [ "$ENABLE_ZRAM" = "1" ]; then
+	zramctl 
+fi
+
+
+# /boot is a problem since it is usually NOT an lvm member,
+# for now just umount it until you actually need it.
+# If thats the case. Requires ALLOW_UMOUNT_BOOT to be set/exist.
+if [ "$ALLOW_UMOUNT_BOOT" != "0" ]; then
+	if [[ "$(df --output=source /boot | tail -1)" == *"mapper"* ]]; then
+		umount /boot/efi > /dev/null 2>&1
+		umount /boot > /dev/null 2>&1
+	fi
+fi 
+
+# In case a swap partition is still used, we stop using it.
+if [ "$ALLOW_UMOUNT_SWAP" != "0" ]; then
+	swapoff -a
+fi
+```

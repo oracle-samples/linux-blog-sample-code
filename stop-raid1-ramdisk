@@ -1,0 +1,82 @@
+```bash
+#!/bin/bash
+
+# Ramdisk mirroring configuration cleanup script.
+#
+# Copyright (c) 2019 Oracle and/or its affiliates.  All rights reserved.
+# Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
+
+CUSTOM_CONF=/etc/sysconfig/raid1ramdisk
+ROOT="/"
+ALLOW_UMOUNT_BOOT=0
+ALLOW_UMOUNT_SWAP=1
+
+# do we have overrides?
+if [ -e $CUSTOM_CONF ]; then
+        . $CUSTOM_CONF
+fi
+
+# What is the name of the volume group / is mounted on ?
+# (usually 'ol', but not guaranteed)
+ROOT_MOUNT=$(df --output=source $ROOT | grep ^/dev)
+ROOT_VG=$(lvs --noheadings -o vg_name "$ROOT_MOUNT" 2>/dev/null | tr -d ' ')
+# LV target name (usually 'ol/root', but not guaranteed)
+ROOT_LV=$(lvs --noheadings -o lv_full_name "$ROOT_MOUNT" 2>/dev/null | tr -d ' ')
+
+# Tidyup
+vgreduce --force --removemissing "$ROOT_VG"
+pvscan --cache
+
+# Wait,.. is RAID even running?
+if [ "$(lvs --noheadings -o lv_layout "$ROOT_LV" | tr -d ' ')" != "raid,raid1" ]; then
+	echo "Ramdisk mirror not used"
+	exit 0
+fi
+
+# Physical device = non ramdisk (single) member
+# (usually /dev/sda2)
+for segment in $(lvs --noheadings -o devices "$ROOT_LV" | sed -e 's/([^()]*)//g' | tr -d ' ' | tr ',' '\n')
+do
+	devi=$(lvs --noheadings -a -o devices "${ROOT_VG}/${segment}" | sed -e 's/([^()]*)//g' | tr -d ' ')
+	case $devi in
+	/dev/ram* )  RAM_DEV=$devi; RAM_DISK_TYPE="brd"  ;;
+	/dev/zram* ) RAM_DEV=$devi; RAM_DISK_TYPE="zram" ;;
+	* )         PHYS_DEV=$devi ;;
+	esac
+done
+
+# Remove write-mostly mode from our physical device
+lvchange --writemostly "${PHYS_DEV}:n" "$ROOT_LV"
+
+# Remove the RAMdisk from the RAID, this will also sync
+lvconvert -y -m0 "$ROOT_LV" "$RAM_DEV"
+
+# Remove the RAMdisk from the Volume Group
+vgreduce "$ROOT_VG" "$RAM_DEV"
+
+# Remove the PV data
+pvremove "$RAM_DEV"
+
+# Remove the RAMdisk altogether
+if [ "$RAM_DISK_TYPE" = "brd" ]; then
+	rmmod brd
+else
+	zramctl -r "$RAM_DEV"
+fi
+
+# Tidyup
+pvscan --cache
+
+# /boot is a problem since it is usually NOT an lvm member.
+# If we tried to umount it, just try to mount it back now.
+# Requires ALLOW_UMOUNT_BOOT to be set/exist
+if [ "$ALLOW_UMOUNT_BOOT" != "0" ]; then
+   mount /boot > /dev/null 2>&1
+   mount /boot/efi > /dev/null 2>&1
+fi 
+
+# If we tried to disable swaping, put it back now.
+if [ "$ALLOW_UMOUNT_SWAP" != "0" ]; then
+	swapon -a
+fi
+```
