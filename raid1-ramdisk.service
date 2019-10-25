@@ -1,0 +1,14 @@
+[Unit]
+Description=Enable RAMdisk RAID 1 on LVM
+After=local-fs.target
+Before=shutdown.target reboot.target halt.target
+
+[Service]
+ExecStart=/usr/sbin/start-raid1-ramdisk
+ExecStop=/usr/sbin/stop-raid1-ramdisk
+Type=oneshot
+RemainAfterExit=yes
+TimeoutSec=0
+
+[Install]
+WantedBy=multi-user.target
