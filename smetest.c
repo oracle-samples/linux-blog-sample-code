@@ -20,9 +20,10 @@
 * or visit www.oracle.com if you need additional information or have any
 * questions.
 */
-#include <linux module.h="">
-#include <linux set_memory.h="">
-#include <linux device.h="">
+#include <linux/module.h>
+#include <linux/set_memory.h>
+#include <linux/device.h>
+#include <linux/fs.h>
  
 #define SECRET_DATA "my secret\n"
  
