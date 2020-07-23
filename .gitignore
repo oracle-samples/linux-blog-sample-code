@@ -1,0 +1,3 @@
+entry-fuzz
+initrd.entry-fuzz.gz
+initrd/
