@@ -1,0 +1,26 @@
+% SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note
+%
+% Copyright (c) 2021, Oracle and/or its affiliates.
+% Author: Vegard Nossum <vegard.nossum@oracle.com>
+
+%\section{Reader-writer spinlocks}
+
+\begin{header}[linux/rwlock.h]
+\begin{tabularx}{\linewidth}{@{}lR@{}}
+\texttt{rwlock\_t} & Reader-writer spinlock type \\
+\texttt{DEFINE\_RWLOCK()} & Variable definition \\
+\texttt{rwlock\_init} & Initialize \\
+\hline
+\texttt{read\_trylock\marka()} & $\rightarrow$ see \texttt{spin\_trylock()} \\
+\texttt{read\_lock\marka()} & $\rightarrow$ see \texttt{spin\_lock()} \\
+\texttt{read\_unlock\markb()} & $\rightarrow$ see \texttt{spin\_unlock()} \\
+\hline
+\texttt{write\_trylock\marka()} & $\rightarrow$ see \texttt{spin\_trylock()} \\
+\texttt{write\_lock\marka()} & $\rightarrow$ see \texttt{spin\_lock()} \\
+\texttt{write\_unlock\markb()} & $\rightarrow$ see \texttt{spin\_unlock()} \\
+\end{tabularx}
+
+\textbf{Variants:} $\uparrow$ see spinlocks.
+
+The lock can be held by either a single writer or multiple readers.
+\end{header}

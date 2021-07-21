@@ -1,0 +1,32 @@
+% SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note
+%
+% Copyright (c) 2021, Oracle and/or its affiliates.
+% Author: Vegard Nossum <vegard.nossum@oracle.com>
+
+\section{Completions}
+
+\begin{header}[linux/completion.h]
+\begin{tabularx}{\linewidth}{@{}lX@{}}
+\texttt{struct completion} & Type \\
+\texttt{DECLARE\_COMPLETION(name)} & Variable definition \\
+\texttt{init\_completion(work)} & Initialize \texttt{work} \\
+\texttt{reinit\_completion(work)} & Reinitialize after completion \\
+\hline
+\texttt{completion\_done(w)} & True when completion is done \\
+\hline
+\texttt{wait\_for\_completion\marka\markb(w)} & Wait for a completion (sleeping) \\
+\texttt{try\_wait\_for\_completion(w)} & $\hookrightarrow$ without blocking; return 1 if done \\
+\hline
+\texttt{complete(w)} & Wake up a single waiting thread \\
+\texttt{complete\_all(w)} & Wake up all waiting threads \\
+\end{tabularx}
+
+\textbf{Variants:}
+\begin{tabularx}{\linewidth}{@{}lX@{}}
+\texttt{\marka\_interruptible} & Return \texttt{-ERESTARTSYS} if a signal arrives \\
+\texttt{\marka\_killable} & Return \texttt{-ERESTARTSYS} if killed \\
+\texttt{\marka\_io} & Account sleeping time as IO wait time \\
+% TODO: timeout in... ms? ns? s? ticks?
+\texttt{\markb\_timeout(w, timeout)} & Return if timeout expires \\
+\end{tabularx}
+\end{header}

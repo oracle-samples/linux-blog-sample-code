@@ -1,0 +1,44 @@
+% SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note
+%
+% Copyright (c) 2021, Oracle and/or its affiliates.
+% Author: Vegard Nossum <vegard.nossum@oracle.com>
+
+\section{Wait queues}
+
+\begin{header}[linux/wait.h]
+\textbf{Queues:}
+\begin{tabularx}{\linewidth}{@{}lX@{}}
+\texttt{wait\_queue\_head\_t} & Wait queue type \\
+\texttt{DECLARE\_WAIT\_QUEUE\_HEAD(name)} & Variable definition \\
+\texttt{DECLARE\_WAIT\_QUEUE\_HEAD\_ONSTACK(name)} & $\hookrightarrow$ for local variables \\
+\texttt{init\_waitqueue\_head(wq)} & Initialize \\
+\hline
+\end{tabularx}
+\begin{tabularx}{\linewidth}{@{}lX@{}}
+\texttt{wait\_event\marka\markb\markc(wq, cond)} & Sleep until condition is true \\
+\texttt{io\_wait\_event(wq, cond)} & $\hookrightarrow$ using \texttt{io\_schedule()} \\
+\texttt{wake\_up(wq)} & Wake up waiters \\
+\end{tabularx}
+
+\textbf{Variants:} (\danger~incomplete)
+\begin{tabularx}{\linewidth}{@{}lX@{}}
+\texttt{\marka\_interruptible\markb\markc} & Returns \texttt{-ERESTARTSYS} if interrupted \\
+\texttt{\marka\_killable\markb} & Returns \texttt{-ERESTARTSYS} if killed \\
+\texttt{\marka\_freezable\markb} & Allow freezing while waiting \\
+\texttt{\markb\_timeout(wq, cond, t)} & Also returns when timeout expires \\
+\texttt{\markc\_lock\_irq(wq, cond, lock)} & Hold spinlock while checking condition \\
+\end{tabularx}
+
+\textbf{Entries:}
+\begin{tabularx}{\linewidth}{@{}lX@{}}
+\texttt{wait\_queue\_entry\_t} & Wait queue entry type \\
+\texttt{DEFINE\_WAIT(e)} & Variable definition \\
+\texttt{DEFINE\_WAIT\_FUNC(e, fn)} & $\hookrightarrow$ using custom wake function \\
+\texttt{init\_wait(e)} & Initialize \\
+%\texttt{init\_wait\_entry(e, flags)} & \\ % this is barely used in the kernel, and flags is always 0
+\hline
+\texttt{prepare\_to\_wait(wq, e, state)} & Enqueue wait-queue entry \\
+\texttt{prepare\_to\_wait\_exclusive(...)} & $\hookrightarrow$ only wake the first thread \\
+\texttt{finish\_wait(wq, e)} & Dequeue wait-queue entry \\
+\end{tabularx}
+\end{header}

@@ -1,0 +1,55 @@
+% SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note
+%
+% Copyright (c) 2021, Oracle and/or its affiliates.
+% Author: Vegard Nossum <vegard.nossum@oracle.com>
+
+\section{Interrupts \& preemption}
+
+\begin{header}[linux/irqflags.h]
+\begin{tabularx}{\linewidth}{@{}lR@{}}
+\texttt{local\_irq\_disable()} & Unconditionally disable interrupts \\
+\texttt{local\_irq\_enable()} & Unconditionally enable interrupts \\
+\texttt{local\_irq\_save(flags)} & Conditionally disable interrupts \\
+\texttt{local\_irq\_restore(flags)} & Conditionally reenable interrupts \\
+\hline
+\texttt{irqs\_disabled()} & True when interrupts are disabled \\
+\end{tabularx}
+
+Interrupt handlers run with interrupts disabled, are non-preemptible, and are atomic (cannot sleep).
+
+Disabling interrupts implicitly disables soft-IRQs. \\
+Disabling interrupts implicitly disables preemption.
+\end{header}
+
+\begin{header}[linux/bottom\_half.h]
+\begin{tabularx}{\linewidth}{@{}lR@{}}
+\texttt{local\_bh\_disable()} & Disable soft-IRQs (on this CPU) \\
+\texttt{local\_bh\_enable()} & Enable soft-IRQs (on this CPU) \\
+% XXX: should we keep this? it's only used in a single place in the kernel.
+\texttt{local\_bh\_blocked()} & True when soft-IRQs are disabled (on this CPU) \\
+\end{tabularx}
+
+\emph{Soft-IRQs} (also known as \emph{bottom halves} or \emph{bh}) run with interrupts enabled.
+\end{header}
+
+\begin{header}[linux/preempt.h]
+\begin{tabularx}{\linewidth}{@{}lR@{}}
+\texttt{in\_nmi()} & True when in NMI context \\
+\texttt{in\_hardirq()} & True when in interrupt context \\
+\texttt{in\_serving\_softirq()} & True when in soft-IRQ context \\
+\texttt{in\_task()} & True when in task context \\
+\texttt{in\_atomic()} & True when the caller cannot sleep \newline (\danger~with exceptions) \\
+\texttt{preemptible()} & True when in preemptible context \\
+\hline
+\texttt{preempt\_disable()} & Disable preemption (nested) \\
+\texttt{preempt\_enable()} & Enable preemption (nested) \\
+\hline
+\texttt{in\_irq()} (deprecated) & Same as \texttt{in\_hardirq()} \\
+\texttt{in\_softirq()} (deprecated) & True when in soft-IRQ or soft-IRQ disabled \\
+\texttt{in\_interrupt()} (deprecated) & True when in NMI, interrupt, soft-IRQ, or soft-IRQ disabled \\
+\end{tabularx}
+
+\emph{Preemption} refers to being scheduled out. A non-preemptible context cannot be scheduled out, but may be interrupted.
+
+\texttt{preempt\_disable()} and \texttt{preempt\_enable()} nest in such a way that preemption remains disabled as long as there is at least one unmatched call to \texttt{preempt\_disable()} active.
+\end{header}

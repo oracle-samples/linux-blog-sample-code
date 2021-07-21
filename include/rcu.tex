@@ -1,0 +1,36 @@
+% SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note
+%
+% Copyright (c) 2021, Oracle and/or its affiliates.
+% Author: Vegard Nossum <vegard.nossum@oracle.com>
+
+\section{RCU (Read-Copy-Update)}
+
+\begin{header}[linux/rcupdate.h]
+\begin{tabularx}{\linewidth}{@{}lR@{}}
+\texttt{rcu\_read\_lock\marka()} & Enter critical section \\
+\texttt{rcu\_read\_unlock\marka()} & Leave critical section \\
+\texttt{rcu\_dereference\marka(p)} & Dereference \texttt{p} \\
+\hline
+\texttt{rcu\_access\_pointer(p)} & Fetch pointer \texttt{p} without dereferencing \\
+\texttt{rcu\_assign\_pointer(p, v)} & Assign \texttt{v} to \texttt{*p} \\
+\texttt{rcu\_replace\_pointer(p, v)} & $\hookrightarrow$ return original value \\
+\hline
+\texttt{struct rcu\_head} & RCU head type \\
+\texttt{rcu\_head\_init(head)} & Initialize \\
+\hline
+\texttt{call\_rcu(head, fn)} & Call \texttt{fn} after grace period \\
+\texttt{kfree\_rcu(p, name)} & Free \texttt{p} after grace period, using \texttt{p->name} \\
+\texttt{synchronize\_rcu()} & Wait for readers to complete \\
+\end{tabularx}
+
+\textbf{Variants:}
+\begin{tabularx}{\linewidth}{@{}lR@{}}
+\texttt{\marka\_bh()} & Also disable (reenable) soft-IRQs \\
+\texttt{\marka\_sched()} & Also disable (reenable) preemption \\
+\end{tabularx}
+
+Writers must always use either a single atomic update \emph{or} exclude other writers using other synchronization mechanisms (like spinlocks).
+\end{header}
+
+%\begin{header}[linux/rculist.h]
+%\end{header}

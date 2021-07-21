@@ -1,0 +1,40 @@
+% SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note
+%
+% Copyright (c) 2021, Oracle and/or its affiliates.
+% Author: Vegard Nossum <vegard.nossum@oracle.com>
+
+\section{Per-CPU variables}
+
+\begin{header}[linux/percpu.h]
+\begin{tabularx}{\linewidth}{@{}lX@{}}
+\texttt{cpu = get\_cpu()} & Disable preemption; return CPU number \\
+\texttt{put\_cpu()} & Reenable preemption \\
+\hline
+\end{tabularx}
+\begin{tabularx}{\linewidth}{@{}lX@{}}
+\texttt{DECLARE\_PER\_CPU\marka(type, name)} & Variable declaration \\
+\texttt{DEFINE\_PER\_CPU\marka(type, name)} & Variable definition \\
+\hline
+\texttt{EXPORT\_PER\_CPU\_SYMBOL(name)} & Export symbol \\
+\hline
+\texttt{per\_cpu(var, cpu)} & Dereference per-CPU variable \\
+\texttt{get\_cpu\_var(var)} & $\hookrightarrow$ disabling preemption \\
+\texttt{put\_cpu\_var(var)} & $\hookrightarrow$ enabling preemption \\
+\texttt{per\_cpu\_ptr(var, cpu)} & Get address of per-CPU variable \\
+\texttt{get\_cpu\_ptr(var)} & $\hookrightarrow$ disabling preemption \\
+\texttt{put\_cpu\_ptr(var)} & $\hookrightarrow$ enabling preemption \\
+\hline
+\texttt{this\_cpu\_ptr(var)} & Get address of this CPU's value \\
+\texttt{this\_cpu\_read(var)} & Read this CPU's value \\
+\texttt{this\_cpu\_write(var)} & Write this CPU's value \\
+\texttt{this\_cpu\_*()} & $\rightarrow$ see atomic operations \\
+\end{tabularx}
+
+\textbf{Variants:}
+\begin{tabularx}{\linewidth}{@{}lX@{}}
+\texttt{\marka\_ALIGNED} & Cacheline-aligned \\
+\texttt{\marka\_SHARED\_ALIGNED} & $\hookrightarrow$ accessible by other CPUs \\
+\texttt{\marka\_PAGE\_ALIGNED} & Page-aligned \\
+\texttt{\marka\_READ\_MOSTLY} & Rarely written to \\
+\end{tabularx}
+\end{header}

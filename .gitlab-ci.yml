@@ -1,0 +1,8 @@
+image: registry.gitlab.com/islandoftex/images/texlive:latest
+pdf:
+  stage: build
+  script: pdflatex main
+  artifacts:
+    paths:
+      - main.pdf
+    expire_in: 1 week

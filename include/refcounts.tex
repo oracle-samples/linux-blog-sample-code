@@ -1,0 +1,38 @@
+% SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note
+%
+% Copyright (c) 2021, Oracle and/or its affiliates.
+% Author: Vegard Nossum <vegard.nossum@oracle.com>
+
+% https://www.kernel.org/doc/html/v4.17/core-api/refcount-vs-atomic.html
+
+\section{Reference counters}
+
+\begin{header}[linux/refcount.h]
+\begin{tabularx}{\linewidth}{@{}lR@{}}
+\texttt{refcount\_t} & Atomic reference count type \\
+\texttt{r = REFCOUNT\_INIT(n)} & Initialize \texttt{r} \\
+\hline
+\texttt{refcount\_read(r)} & Read from \texttt{r} \\
+\texttt{refcount\_set(r, i)} & Write \texttt{i} to \texttt{r} \\
+\hline
+\texttt{refcount\_inc\marka(r)} & Increment \texttt{r} by 1 \\
+\texttt{refcount\_add\marka(i, r)} & Add \texttt{i} to \texttt{r} \\
+\hline
+\texttt{refcount\_dec\markb(r)} & Decrement \texttt{r} by 1 \\
+\texttt{refcount\_dec\_and\_test(r)} & $\hookrightarrow$ return true if new value is 0 \\
+\texttt{refcount\_dec\_and\_lock(r, mut)} & $\hookrightarrow$ lock mutex if new value is 0 \\
+\multicolumn{2}{@{}l@{}}{\texttt{refcount\_dec\_and\_lock\_irqsave(r, spin, flags)}} \\
+& $\hookrightarrow$ disable interrupts if enabled \\
+\multicolumn{2}{@{}l@{}}{\texttt{refcount\_dec\_and\_mutex\_lock(r, spin)}} \\
+& $\hookrightarrow$ lock mutex if new value is 0 \\
+\texttt{refcount\_sub\_and\_test(i, r)} & \\
+\end{tabularx}
+
+\textbf{Variants:}
+\begin{tabularx}{\linewidth}{@{}lR@{}}
+\texttt{\marka\_not\_zero} & only if the original value is not 0 \\
+\texttt{\markb\_not\_one} & only if the original value is not 1 \\
+\texttt{\markb\_if\_one} & only if the original value is 1 \\
+\texttt{\markb\_and\_test} & return true if the new value is 0 \\
+\end{tabularx}
+\end{header}

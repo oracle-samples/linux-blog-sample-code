@@ -1,0 +1,28 @@
+% SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note
+%
+% Copyright (c) 2021, Oracle and/or its affiliates.
+% Author: Vegard Nossum <vegard.nossum@oracle.com>
+
+%\section{Reader-writer semahores (sleeping)}
+
+\begin{header}[linux/rwsem.h]
+\begin{tabularx}{\linewidth}{@{}lX@{}}
+\texttt{struct rw\_semaphore} & Reader-writer semaphore type \\
+\texttt{DECLARE\_RWSEM(name)} & Variable definition \\
+\texttt{init\_rwsem(sem)} & Initialize \\
+\hline
+\texttt{rwsem\_is\_locked(sem)} & Return true if \texttt{sem} is locked \\
+\hline
+\texttt{down\_read\_trylock(sem)} & $\rightarrow$ see \texttt{down\_trylock()} \\
+\texttt{down\_read\marka\markc(sem)} & $\rightarrow$ see \texttt{down()} \\
+\texttt{up\_read(sem)} & $\rightarrow$ see \texttt{up()} \\
+\hline
+\texttt{down\_write\_trylock(sem)} & $\rightarrow$ see \texttt{down\_trylock()} \\
+\texttt{down\_write\marka\markc(sem)} & $\rightarrow$ see \texttt{down()} \\
+\texttt{up\_write(sem)} & $\rightarrow$ see \texttt{up()} \\
+\end{tabularx}
+
+\textbf{Variants:} $\uparrow$ see mutexes.
+
+The lock can be held by either a single writer or multiple readers.
+\end{header}

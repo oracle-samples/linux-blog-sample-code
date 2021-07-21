@@ -1,0 +1,30 @@
+% SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note
+%
+% Copyright (c) 2021, Oracle and/or its affiliates.
+% Author: Vegard Nossum <vegard.nossum@oracle.com>
+
+\section{Spinlocks}
+
+\begin{header}[asm/spinlock.h]
+\begin{tabularx}{\linewidth}{@{}lR@{}}
+\texttt{spinlock\_t} & Spinlock type \\
+\texttt{DEFINE\_SPINLOCK()} & Variable definition \\
+\texttt{spin\_lock\_init()} & Initialize spinlock \\
+\hline
+\texttt{spin\_is\_locked()} & Return \texttt{true} if spinlock is held (by any CPU) \\
+\hline
+\texttt{spin\_trylock\marka()} & Try to acquire spinlock without spinning; \newline \danger~returns \texttt{true} if spinlock was acquired \\
+\texttt{spin\_lock\marka()} & Acquire spinlock; busy-looping \\
+\texttt{spin\_unlock\markb()} & Release spinlock \\
+\end{tabularx}
+
+\textbf{Variants:}
+\begin{tabularx}{\linewidth}{@{}lR@{}}
+\texttt{\marka\markb\_bh} & Disable soft-IRQs while locked \\
+\texttt{\marka\markb\_irq} & Disable interrupts while locked \\
+\texttt{\marka\_irqsave} & Conditionally disable interrupts if enabled \\
+\texttt{\markb\_irqrestore} & Conditionally reenable interrupts if originally enabled \\
+\end{tabularx}
+
+In general, the variants must be paired, e.g. \texttt{spin\_lock\_bh()} with \texttt{spin\_unlock\_bh()} or \texttt{spin\_lock\_irqsave()} with \texttt{spin\_unlock\_irqrestore()}.
+\end{header}

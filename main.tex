@@ -1,0 +1,170 @@
+% SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note
+%
+% Copyright (c) 2021, Oracle and/or its affiliates.
+% Author: Vegard Nossum <vegard.nossum@oracle.com>
+
+\documentclass[10pt,a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+
+\usepackage[landscape,margin=.6cm]{geometry}
+\usepackage{charter}
+\usepackage[usenames,dvipsnames]{xcolor}
+\usepackage{titlesec}
+\usepackage{multicol}
+\usepackage{array}
+\usepackage{tabularx}
+\usepackage{colortbl}
+\usepackage{tikz}
+\usepackage{tikzpagenodes}
+\usepackage{eso-pic}
+\usepackage{hyperref}
+\usepackage[many]{tcolorbox}
+\usepackage{stackengine}
+\usepackage{scalerel}
+
+\pagestyle{empty}
+\hypersetup{pdfborder={0 0 0}}
+
+\titleformat{\section}{\normalfont\fontsize{12}{15}\bfseries}{}{0pt}{}
+\titlespacing*{\section}{0pt}{0pt}{0pt}
+
+\setlength{\multicolsep}{.5cm}
+\setlength{\columnsep}{.5cm}
+
+\setlength\tabcolsep{2pt}
+
+\definecolor{LightGray}{gray}{.75}
+\arrayrulecolor{LightGray}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0pt}
+
+\newcolumntype{R}{>{\raggedright\arraybackslash}X}
+
+% helpers
+
+\newcounter{header}[section]
+
+\makeatletter
+\newcommand{\tcbheaderoverlay}{%
+\ifnum \theheader=1%
+true%
+\else%
+false%
+\fi%
+}
+\makeatother
+
+\newtcolorbox{tcbheader}[1][]{
+  enhanced,
+  colback=white,
+  coltitle=black,
+  title=#1,
+  detach title,
+  overlay app={
+    \node[overlay=\tcbheaderoverlay,draw,line width=.5pt,fill=black!15!white,anchor=south east,yshift=-.5] at (frame.north east) {\hspace*{1pt}\tcbtitle\hspace*{1pt}};
+  },
+  arc=0pt,
+  boxrule=.5pt,
+  boxsep=0pt,
+  top=2pt,
+  bottom=2pt,
+  % expand a bit into the margin on the left
+  leftupper=4pt,
+  enlarge left by=-4pt,
+  % ...and on the right
+  rightupper=4pt,
+  enlarge right by=-4pt,
+  width=\linewidth+8pt,
+  %
+}
+
+\newenvironment{header}[1][]{%
+\stepcounter{header}%
+\begin{tcbheader}[\texttt{#1}]%
+\raggedright
+\setlength{\parskip}{.5\baselineskip}
+}{%
+\end{tcbheader}%
+}
+
+\newcommand*\numbermark[1]{
+\tikz{
+\node[shape=circle,fill,text=white,inner sep=.5pt] {\tiny\sffamily#1};
+}%
+}
+
+\newcommand{\marka}{{\color{red}\numbermark{1}}}
+\newcommand{\markb}{{\color{ForestGreen}\numbermark{2}}}
+\newcommand{\markc}{{\color{NavyBlue}\numbermark{3}}}
+\newcommand{\markd}{{\color{Mulberry}\numbermark{4}}}
+
+\newcommand{\todo}{\textcolor{red}{TODO}}
+
+\newcommand\danger{%
+\tikz{
+\fill[fill=Peach] (-3pt,0) -- (3pt, 0) -- (0, .7em);
+\node[text=white,inner sep=0pt] at (0, 2.3pt) {\tiny\bfseries!};
+}%
+}
+
+\begin{document}
+
+\AddToShipoutPictureBG*{
+\begin{tikzpicture}[overlay]
+\node[align=right,anchor=south east] at (current page text area.south east) {
+\sffamily
+Copyright \copyright~2021, Oracle and/or its affiliates.
+---
+SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note
+---
+Vegard Nossum <\texttt{vegard.nossum@oracle.com}> / @vegard\texttt{\_}no
+};
+\end{tikzpicture}
+}
+
+\raggedright
+\footnotesize
+\begin{multicols}{3}
+\raggedcolumns
+\raggedbottom
+
+% Page 1
+\clearpage
+\input{include/barriers}
+\input{include/atomics}
+\input{include/refcounts}
+\input{include/spinlocks}
+\input{include/rwlocks}
+\input{include/mutexes}
+\input{include/semaphores}
+\input{include/rwsems}
+
+% Title
+{
+\vfil
+\Huge
+\bfseries
+\centering
+Linux kernel \\
+concurrency \\
+cheat sheet \\[2ex]
+\vfil
+}
+
+% Page 2
+\clearpage
+\input{include/interrupts}
+\input{include/completions}
+\columnbreak
+\input{include/percpu}
+\input{include/rcu}
+\input{include/seqlocks}
+\columnbreak
+\input{include/waitqueues}
+\input{include/lists}
+
+\end{multicols}
+\end{document}

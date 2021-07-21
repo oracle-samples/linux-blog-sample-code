@@ -1,0 +1,29 @@
+% SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note
+%
+% Copyright (c) 2021, Oracle and/or its affiliates.
+% Author: Vegard Nossum <vegard.nossum@oracle.com>
+
+\section{Sequence locks}
+
+\begin{header}[linux/seqlock.h]
+\begin{tabularx}{\linewidth}{@{}lR@{}}
+\texttt{seqcount\_t} & Type \\
+\texttt{SEQCOUNT\_ZERO} & Static initializer \\
+\texttt{seqcount\_init(s)} & Initialize \\
+\end{tabularx}
+
+Writer: \\
+\texttt{%
+write\_seqcount\_begin(\&s); \\
+... \\
+write\_seqcount\_end(\&s);%
+}
+
+Reader: \\
+\texttt{%
+do \{ \\
+\hspace{1em} seq = read\_seqcount\_begin(\&s); \\
+\hspace{1em} ... \\
+\} while (read\_seqcount\_retry(\&s, seq));%
+}
+\end{header}

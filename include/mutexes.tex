@@ -1,0 +1,31 @@
+% SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note
+%
+% Copyright (c) 2021, Oracle and/or its affiliates.
+% Author: Vegard Nossum <vegard.nossum@oracle.com>
+
+\section{Mutexes (sleeping)}
+
+\begin{header}[linux/mutex.h]
+\begin{tabularx}{\linewidth}{@{}lR@{}}
+\texttt{struct mutex} & Mutex type \\
+\texttt{DEFINE\_MUTEX(name)} & Variable definition \\
+\texttt{mutex\_init(mut)} & Initialize \texttt{mut} \\
+\hline
+\texttt{mutex\_is\_locked(mut)} & True when \texttt{mut} is locked (by any thread) \\
+\hline
+\texttt{mutex\_trylock(mut)} & Try to acquire \texttt{mut} without sleeping; \newline \danger~returns \texttt{true} if mutex was acquired\\
+\texttt{mutex\_lock\marka\markb\markc(mut)} & Acquire \texttt{mut}; sleeping \\
+\texttt{mutex\_unlock(mut)} & Release \texttt{mut} (may schedule) \\
+\end{tabularx}
+
+\textbf{Variants:}
+\begin{tabularx}{\linewidth}{@{}lR@{}}
+\texttt{\marka\_interruptible\markc} & Return \texttt{-EINTR} if a signal arrives \\
+\texttt{\marka\_killable\markc} & Return \texttt{-EINTR} if killed \\
+\texttt{\markb\_io\markc} & Account sleeping time as IO wait time \\
+\texttt{\markc\_nested(mut, c)} & Used when acquiring two mutexes of the same class; \texttt{c} is a nesting level/class \\
+\end{tabularx}
+
+%Mutexes sleep when you acquire them and potentially wake up other threads when releasing them.
+Mutexes cannot be held, acquired, or released in atomic contexts.
+\end{header}

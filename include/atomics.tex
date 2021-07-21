@@ -1,0 +1,67 @@
+% SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note
+%
+% Copyright (c) 2021, Oracle and/or its affiliates.
+% Author: Vegard Nossum <vegard.nossum@oracle.com>
+
+% commit a9ebf306f52c756c4f9e50ee9a60cd6389d71344
+
+\section{Atomic operations}
+
+\begin{header}[asm/rwonce.h]
+\begin{tabularx}{\linewidth}{@{}lR@{}}
+\texttt{READ\_ONCE(x)} & Emit single instruction to load \texttt{x} \\
+\texttt{WRITE\_ONCE(x, val)} & Emit single instruction to store \texttt{x} \\
+\end{tabularx}
+\end{header}
+
+\begin{header}[asm/atomic.h]
+\begin{tabularx}{\linewidth}{@{}lR@{}}
+\texttt{atomic\_t} & Atomic 32-bit (signed) integer type \\
+\hline
+\texttt{atomic\_read(v)} & Read from \texttt{v} \\
+\texttt{atomic\_set(v, i)} & Write i to \texttt{v} \\
+\hline
+\texttt{atomic\_inc\marka(v)} & Increment by 1 \\
+\texttt{atomic\_inc\_not\_zero(v)} & $\hookrightarrow$ if the original value $\neq 0$ \\
+\texttt{atomic\_dec\marka(v)} & Decrement by 1 \\
+\texttt{atomic\_dec\_and\_test(v)} & $\hookrightarrow$ return true if the new value $= 0$ \\
+\hline
+\texttt{atomic\_add\marka(i, v)} & Add \texttt{i} to (and write to) \texttt{v} \\
+\texttt{atomic\_add\_return*(i, v)} & $\hookrightarrow$ return the new value \\
+\texttt{atomic\_fetch\_add*(i, v)} & $\hookrightarrow$ return the old value \\
+\texttt{atomic\_add\_unless(v, i, u)} & $\hookrightarrow$ unless the existing value is \texttt{u} \\
+\hline
+\texttt{atomic\_sub\marka(i, v)} & Subtract \texttt{i} from (and write to) \texttt{v} \\
+\texttt{atomic\_sub\_and\_test()} & $\hookrightarrow$ return true if the new value is 0 \\
+\hline
+\texttt{atomic\_and\marka(i, v)} & \texttt{v \&= i;} \\
+\texttt{atomic\_andnot\marka(i, v)} & \texttt{v \&= \raisebox{-0.75ex}{\textasciitilde}i;} \\
+\texttt{atomic\_or\marka(i, v)} & \texttt{v |= i;} \\
+\texttt{atomic\_xor\marka(i, v)} & \texttt{v \^{}= i;} \\
+\hline
+\texttt{atomic\_xchg\marka(v, n)} & Swap \texttt{v} and \texttt{n}; return original value \\
+\end{tabularx}
+\begin{tabularx}{\linewidth}{@{}lR@{}}
+\texttt{atomic\_cmpxchg\marka(v, o, n)} & $\hookrightarrow$ if the original value = \texttt{o} \\
+\texttt{atomic\_try\_cmpxchg\marka(v, \&o, n)} & $\hookrightarrow$ return true if swapped \\
+\end{tabularx}
+
+\textbf{Variants:}
+\begin{tabularx}{\linewidth}{@{}lR@{}}
+\texttt{\marka\_relaxed} & unordered \\
+\texttt{\marka\_acquire} & read is ordered against subsequent reads \\
+\texttt{\marka\_release} & write is ordered against preceding writes \\
+\end{tabularx}
+
+Overflow/underflow is defined as two's complement.
+\end{header}
+
+%\section{Atomic operations (64-bit)}
+
+\begin{header}[asm/atomic-long.h]
+\begin{tabularx}{\linewidth}{@{}lR@{}}
+\texttt{atomic\_long\_t} & Atomic 64-bit (signed) integer type
+\end{tabularx}
+
+Operations are the same as for \texttt{atomic\_t}, i.e. \texttt{atomic\_inc()} becomes \texttt{atomic\_long\_inc()}.
+\end{header}

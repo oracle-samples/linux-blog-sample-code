@@ -1,0 +1,11 @@
+This cheat sheet (including both the LaTeX source code and resulting
+rendered document) is provided under the same conditions as the Linux
+kernel, namely:
+
+	SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note
+
+The full GNU General Public License version 2 and the syscall exception
+can be found here:
+
+	LICENSES/GPL-2.0
+	LICENSES/Linux-syscall-note

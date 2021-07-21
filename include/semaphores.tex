@@ -1,0 +1,23 @@
+% SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note
+%
+% Copyright (c) 2021, Oracle and/or its affiliates.
+% Author: Vegard Nossum <vegard.nossum@oracle.com>
+
+\section{Semaphores (sleeping)}
+
+\begin{header}[linux/semaphore.h]
+\begin{tabularx}{\linewidth}{@{}lX@{}}
+\texttt{struct semaphore} & Semaphore type \\
+\texttt{DEFINE\_SEMAPHORE(name)} & Variable definition \\
+\texttt{sema\_init(sem, val)} & Initialize \\
+\hline
+\texttt{down\_trylock(sem)} & Try to acquire \texttt{sem} without sleeping; \newline \danger~returns 0 if semaphore was acquired \\
+\texttt{down\marka\markb\markd(sem)} & Acquire \texttt{sem}; sleeping \\
+\texttt{up(sem)} & Release \texttt{sem} \\
+\end{tabularx}
+
+\textbf{Variants:} $\uparrow$ see mutexes;
+\begin{tabularx}{\linewidth}{@{}lR@{}}
+\texttt{\markd\_timeout(sem, timeout)} & Return if timeout expires \\
+\end{tabularx}
+\end{header}

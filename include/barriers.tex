@@ -1,0 +1,33 @@
+% SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note
+%
+% Copyright (c) 2021, Oracle and/or its affiliates.
+% Author: Vegard Nossum <vegard.nossum@oracle.com>
+
+\section{Barriers}
+
+\begin{header}[asm/barrier.h]
+% Documentation/memory-barriers.txt
+
+\begin{tabularx}{\linewidth}{@{}lR@{}}
+\texttt{barrier()} & Compiler barrier \\
+\hline
+\texttt{mb()} & Full system (I/O) memory barrier \\
+\texttt{rmb()} & $\hookrightarrow$ reads only \\
+\texttt{wmb()} & $\hookrightarrow$ writes only \\
+\hline
+\texttt{smp\_mb()} & SMP (conditional) memory barrier \\
+\texttt{smp\_rmb()} & $\hookrightarrow$ reads only \\
+\texttt{smp\_wmb()} & $\hookrightarrow$ writes only \\
+\hline
+\texttt{smp\_store\_mb(v, val)} & Write \texttt{val} to \texttt{v}; then full memory barrier \\
+\texttt{smp\_load\_acquire()} & Order preceding accesses against following read \\
+\texttt{smp\_store\_release()} & Order following accesses against preceding write \\
+\hline
+\end{tabularx}
+\begin{tabularx}{\linewidth}{@{}lR@{}}
+\texttt{smp\_mb\_\_before\_atomic()} & Order preceding accesses against atomic op. \\
+\texttt{smp\_mb\_\_after\_atomic()} & Order following accesses against atomic op. \\
+\end{tabularx}
+
+Barriers must always be \emph{paired} to be effective, although some operations (e.g. acquiring a lock) contain memory barriers implicitly.
+\end{header}

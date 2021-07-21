@@ -1,0 +1,54 @@
+% SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note
+%
+% Copyright (c) 2021, Oracle and/or its affiliates.
+% Author: Vegard Nossum <vegard.nossum@oracle.com>
+
+\section{Lists}
+
+\begin{header}[linux/list.h]
+\begin{tabularx}{\linewidth}{@{}lR@{}}
+\texttt{struct list\_head} & Type \\
+\texttt{LIST\_HEAD()} & Define \\
+\texttt{INIT\_LIST\_HEAD(head)} & Initialize \\
+\hline
+\texttt{list\_add(e, head)} & Add \texttt{e} to the start of \texttt{head} \\
+\texttt{list\_add\_tail(e, head)} & Add \texttt{e} to the end of \texttt{head} \\
+\texttt{list\_del(e)} & Remove \texttt{e} \\
+\texttt{list\_del\_init(e)} & $\hookrightarrow$ reinitialize \texttt{e} \\
+\texttt{list\_replace(old, new)} & Replace \texttt{old} by \texttt{new} \\
+\texttt{list\_replace\_init(old, new)} & $\hookrightarrow$ reinitialize \texttt{old} \\
+\texttt{list\_swap(e1, e2)} & Swap \texttt{e1} and \texttt{t2} \\
+\texttt{list\_move(e, head)} & Remove \texttt{e}; add to the start of \texttt{head} \\
+\texttt{list\_move\_tail(e, head)} & Remove \texttt{e}; add to the end of \texttt{head} \\
+%\texttt{list\_bulk\_move\_tail(head, first, last)} & Move elements from \texttt{first} and \texttt{last} (both inclusive) to 
+\hline
+\end{tabularx}
+\begin{tabularx}{\linewidth}{@{}lR@{}}
+\multicolumn{2}{@{}l@{}}{\texttt{list\_is\_head(e, head, member)}} \\
+& True when \texttt{e} is the head of the list \\
+\texttt{list\_is\_first(e, head)} & True when \texttt{e} is the first element of \texttt{head} \\
+\texttt{list\_is\_last(e, head)} & True when \texttt{e} is the last element of \texttt{head} \\
+\texttt{list\_empty(head)} & True when \texttt{head} is an empty list \\
+\texttt{list\_is\_singular(head)} & True when \texttt{head} contains one element \\
+\hline
+\end{tabularx}
+\iffalse
+\begin{tabularx}{\linewidth}{@{}lR@{}}
+\texttt{list\_splice(list, head)} & Add all the elements in the list \texttt{list} to the start of \texttt{head} \\
+\texttt{list\_splice\_tail(list, head)} & Add all the elements in the list \texttt{list} to the end of \texttt{head} \\
+\texttt{list\_splice\_init(list, head)} & Add all the elements in the list \texttt{list} to the start of \texttt{head}; reinitialize \texttt{list} \\
+\texttt{list\_splice\_tail\_init(list, head)} & Add all the elements in the list \texttt{list} to the end of \texttt{head}; reinitialize \texttt{list} \\
+\end{tabularx}
+\fi
+\begin{tabularx}{\linewidth}{@{}lR@{}}
+\texttt{list\_for\_each\_entry\marka(...)} & Iterate over list \\
+\end{tabularx}
+
+\textbf{Variants:}
+\begin{tabularx}{\linewidth}{@{}lR@{}}
+\texttt{\marka(e, head, member)} & Forward iteration \\
+\texttt{\marka\_safe(e, tmp, head, member)} & $\hookrightarrow$ allow node deletion \\
+\texttt{\marka\_reverse(e, head, member)} & Backwards iteration \\
+\texttt{\marka\_safe\_reverse(e, tmp, head, member)} & $\hookrightarrow$ allow node deletion \\
+\end{tabularx}
+\end{header}
