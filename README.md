@@ -1,5 +1,9 @@
 # Samples showing kernel kprobe, userspace uprobe and USDT tracing
 
+This is connected to a blog on https://blogs.oracle.com/linux/post/from-kernel-to-user-space-tracing.
+
+Please go there for more context.
+
 Samples illustrate how to do kernel and userspace tracing.
 
 - do_sysinfo: kprobe tracing
